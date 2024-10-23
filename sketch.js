@@ -1,39 +1,58 @@
-let startTime;
-let duration = 15000; // 15 seconds (change to 30000 for 30 seconds)
+let song;
+let amp;
 let circleSize;
-let bgColor;
+let duration = 20000; // 20 seconds for the animation
+let startTime;
+
+function preload() {
+  // Load the MP3 file
+  song = loadSound('Daydreams-chosic.com_.mp3');
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  startTime = millis(); // Record the start time of the animation
+  
+  // Create an amplitude analyzer
+  amp = new p5.Amplitude();
+  
+  // Play the song and record the start time
+  song.play();
+  startTime = millis();
+  
+  // Set the initial circle size
   circleSize = 50;
-  bgColor = color(50, 50, 150);
 }
 
 function draw() {
+  
   let currentTime = millis();
   let elapsedTime = currentTime - startTime;
-
-  // Update circle size and background color based on time
-  let timeFactor = elapsedTime / duration;
   
-  // Vary the size of the circle like a heartbeat or musical beat
-  circleSize = 50 + sin(timeFactor * TWO_PI * 4) * 30; // 4 beats in the duration
-  bgColor = color(50 + sin(timeFactor * TWO_PI * 2) * 200, 50, 150 + cos(timeFactor * TWO_PI * 2) * 100);
+  // Stop the animation when it exceeds the specified duration
+  if (elapsedTime > duration) {
+    noLoop();
+    song.stop(); // Stop the song when the animation ends
+    return;
+  }
 
-  background(bgColor);
-  
-  // Draw circles at different points on the screen
-  let spacing = 100;
+  background(50, 50, 150);
+
+  // Get the current amplitude level (volume)
+  let level = amp.getLevel();
+
+  // Map the amplitude level to the circle size
+  circleSize = map(level, 0, 1, 50, 300); // Adjust range as needed for desired effect
+
+  // Draw animated circles based on amplitude
+  let spacing = 150;
   for (let i = spacing; i < width; i += spacing) {
-    let yPosition = height / 2 + sin(i * 0.01 + timeFactor * TWO_PI * 3) * 50;
+    let yPosition = height / 2 + sin(i * 0.01 + millis() / 500) * 50;
     fill(255);
     noStroke();
     ellipse(i, yPosition, circleSize);
   }
 
-  // Stop the animation after the specified duration
-  if (elapsedTime > duration) {
-    noLoop();
-  }
+  // Change the background color dynamically based on amplitude
+  let bgColor = color(50 + level * 200, 50, 150 + level * 100);
+  background(bgColor, 80); // Background with alpha for fading effect
 }
